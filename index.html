@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Dork Tool</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            /* Define some custom colors for easier management */
+            --hc-dark-bg: #212529; /* Standard dark background */
+            --hc-card-bg: #2c3034; /* Slightly lighter card background */
+            --hc-input-bg: #3a3f44; /* Background for inputs */
+            --hc-input-text: #e9ecef; /* Text color for inputs */
+            --hc-input-placeholder: #80868b; /* Placeholder text */
+            --hc-input-border: #5a5f63; /* Border for inputs */
+            --hc-label-text: #f8f9fa; /* Brighter text for labels */
+            --hc-dork-bg: #3a3f44; /* Background for the dork textarea */
+            --hc-dork-text: #fff; /* Brightest text for the generated dork */
+            --hc-muted-text: #adb5bd; /* Slightly brighter muted text */
+        }
+
+        body {
+            padding-top: 20px;
+            padding-bottom: 40px;
+            background-color: var(--hc-dark-bg);
+            color: var(--bs-body-color); /* Use Bootstrap's default light text */
+        }
+        .container {
+            max-width: 900px;
+        }
+        .card {
+            background-color: var(--hc-card-bg);
+            border: 1px solid var(--hc-input-border); /* Add subtle border to card */
+        }
+
+        /* Input Fields & Select */
+        .form-control, .form-select {
+            background-color: var(--hc-input-bg);
+            color: var(--hc-input-text);
+            border: 1px solid var(--hc-input-border);
+        }
+        .form-control::placeholder {
+             color: var(--hc-input-placeholder);
+             opacity: 1; /* Override bootstrap's default opacity */
+        }
+        /* Ensure date input text is also visible */
+        .form-control[type="date"] {
+             color: var(--hc-input-text);
+        }
+        .form-control[type="date"]:invalid {
+             color: var(--hc-input-placeholder); /* Style if no date is selected */
+        }
+
+
+        /* Input Group Labels (e.g., site:) */
+        .input-group-text {
+             min-width: 100px;
+             justify-content: flex-end;
+             font-weight: 500; /* Slightly less bold */
+             font-size: 0.9em;
+             background-color: var(--hc-card-bg); /* Match card background */
+             color: var(--hc-label-text); /* Brighter text */
+             border: 1px solid var(--hc-input-border);
+        }
+
+        /* Generated Dork Textarea */
+        #generatedDork {
+            font-family: monospace;
+            background-color: var(--hc-dork-bg);
+            color: var(--hc-dork-text); /* Use pure white for max contrast here */
+            min-height: 80px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            border: 1px solid var(--hc-input-border);
+        }
+
+        /* Labels */
+        label {
+            font-weight: 500; /* Use medium weight */
+            color: var(--hc-label-text); /* Brighter label text */
+            margin-bottom: 0.5rem;
+        }
+        .date-range-label {
+             color: var(--hc-label-text);
+        }
+
+        /* Help Text */
+        .form-text {
+            font-size: 0.8em;
+            color: var(--hc-muted-text); /* Use custom muted color */
+        }
+
+        /* Focus States */
+        .form-control:focus, .form-select:focus {
+             border-color: var(--bs-primary); /* Use theme color for border */
+             box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25); /* Keep BS focus shadow */
+             background-color: var(--hc-input-bg); /* Maintain background */
+             color: var(--hc-input-text); /* Maintain text color */
+        }
+
+        /* Button Copy Feedback */
+        .btn-copy .bi-clipboard-check-fill { display: none; }
+        .btn-copy.copied .bi-clipboard { display: none; }
+        .btn-copy.copied .bi-clipboard-check-fill { display: inline-block; }
+
+        /* Footer */
+        footer small {
+            color: var(--hc-muted-text);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4 text-center" style="color: var(--hc-label-text);">Google Dork</h1>
+        <p class="text-center mb-4" style="color: var(--hc-muted-text);">Build complex Google search queries easily. Supports common operators and OR logic for site/filetype.</p>
+        <p class="text-center small mb-4" style="color: var(--hc-muted-text);">
+            Tip: For `allin*` operators (e.g., `allintitle:admin login`), type them directly into the Keywords field. Use `~` for synonyms and `*` for wildcards within any relevant field.
+        </p>
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3" style="color: var(--hc-label-text);">Core Search Terms</h5>
+                <!-- Keywords / Exact Phrase -->
+                <div class="mb-3">
+                    <label for="keywords" class="form-label">Keywords / "Exact Phrase" / allin*:</label>
+                    <input type="text" class="form-control" id="keywords" placeholder="e.g., admin login, "confidential report", allintitle:index of">
+                </div>
+
+                <h5 class="card-title mb-3 mt-4" style="color: var(--hc-label-text);">Filtering Operators</h5>
+                 <!-- Basic Filters -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text" title="Restrict to specific domain(s) or TLDs. Separate multiple sites with spaces for OR logic (e.g., site:gov site:edu)">site:</span>
+                            <input type="text" class="form-control" id="site" placeholder="example.com OR site1.com site2.org">
+                        </div>
+                        <div class="form-text">Space-separated sites become (site:site1 OR site:site2).</div>
+                    </div>
+                     <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text" title="Restrict to specific file extensions. Separate multiple types with spaces for OR logic (e.g., pdf docx)">filetype:</span>
+                            <input type="text" class="form-control" id="filetype" placeholder="pdf OR pdf log sql">
+                        </div>
+                         <div class="form-text">Space-separated types become (filetype:type1 OR filetype:type2).</div>
+                    </div>
+                     <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text" title="Terms must appear in the page title. Use quotes for phrases.">intitle:</span>
+                            <input type="text" class="form-control" id="intitle" placeholder=""index of /" OR login">
+                        </div>
+                    </div>
+                     <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text" title="Terms must appear in the URL.">inurl:</span>
+                            <input type="text" class="form-control" id="inurl" placeholder="login OR admin OR dashboard">
+                        </div>
+                    </div>
+                     <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text" title="Terms must appear in the page body text. Use quotes for phrases.">intext:</span>
+                            <input type="text" class="form-control" id="intext" placeholder=""password" OR "internal use"">
+                        </div>
+                    </div>
+                     <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text" title="Terms must appear in the anchor text of links pointing to the page.">inanchor:</span>
+                            <input type="text" class="form-control" id="inanchor" placeholder="click here OR download">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text" title="Exclude results containing these terms (space-separated).">-(exclude):</span>
+                            <input type="text" class="form-control" id="exclude" placeholder="term1 term2 example sample">
+                        </div>
+                    </div>
+                     <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text" title="Search for numbers in a range (e.g., 2020..2023)">numrange:</span>
+                            <input type="text" class="form-control" id="numrange" placeholder="100..500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Date Range -->
+                 <div class="row g-3 mb-3 border-top pt-3 mt-3" style="border-color: var(--hc-input-border) !important;">
+                     <span class="date-range-label">Date Range (Optional)</span>
+                     <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">after:</span>
+                            <input type="date" class="form-control" id="afterDate">
+                        </div>
+                        <div class="form-text">Find results published after this date.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">before:</span>
+                            <input type="date" class="form-control" id="beforeDate">
+                        </div>
+                         <div class="form-text">Find results published before this date.</div>
+                    </div>
+                 </div>
+
+                 <!-- URL/Link Based Operators -->
+                <div class="row g-3 border-top pt-3 mt-3" style="border-color: var(--hc-input-border) !important;">
+                     <h5 class="card-title mb-1" style="color: var(--hc-label-text);">URL/Link Operators</h5>
+                     <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text" title="Find pages linking to this URL (results may be limited).">link:</span>
+                            <input type="text" class="form-control" id="link" placeholder="www.example.com/resource">
+                        </div>
+                    </div>
+                     <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text" title="Find pages similar to this URL.">related:</span>
+                            <input type="text" class="form-control" id="related" placeholder="www.example.com">
+                        </div>
+                    </div>
+                     <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text" title="Show Google's cached version of this URL.">cache:</span>
+                            <input type="text" class="form-control" id="cache" placeholder="www.example.com/page.html">
+                        </div>
+                    </div>
+                </div>
+
+            </div> <!-- /card-body -->
+        </div> <!-- /card -->
+
+        <!-- Generated Dork Display -->
+        <div class="mb-3">
+             <label for="generatedDork" class="form-label">Generated Dork:</label>
+             <textarea class="form-control" id="generatedDork" rows="4" readonly></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="d-flex justify-content-center flex-wrap gap-2">
+             <button class="btn btn-warning" id="resetButton">
+                 <i class="bi bi-arrow-clockwise"></i> Reset Fields
+            </button>
+            <button class="btn btn-secondary btn-copy" id="copyButton">
+                <i class="bi bi-clipboard"></i>
+                <i class="bi bi-clipboard-check-fill"></i>
+                <span class="button-text">Copy Dork</span>
+            </button>
+            <button class="btn btn-primary" id="searchButton">
+                 <i class="bi bi-google"></i> Search on Google
+            </button>
+        </div>
+
+         <footer class="text-center mt-5">
+            <small>Use responsibly and ethically. For educational purposes only.</small>
+        </footer>
+
+    </div> <!-- /container -->
+
+    <!-- Bootstrap Bundle JS (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+    <!-- Custom JavaScript (No changes needed here from previous version) -->
+    <script>
+        // Input Elements
+        const keywordInput = document.getElementById('keywords');
+        const siteInput = document.getElementById('site');
+        const filetypeInput = document.getElementById('filetype');
+        const intitleInput = document.getElementById('intitle');
+        const inurlInput = document.getElementById('inurl');
+        const intextInput = document.getElementById('intext');
+        const inanchorInput = document.getElementById('inanchor');
+        const excludeInput = document.getElementById('exclude');
+        const numrangeInput = document.getElementById('numrange');
+        const afterDateInput = document.getElementById('afterDate');
+        const beforeDateInput = document.getElementById('beforeDate');
+        const linkInput = document.getElementById('link');
+        const relatedInput = document.getElementById('related');
+        const cacheInput = document.getElementById('cache');
+
+        // Output & Buttons
+        const generatedDorkOutput = document.getElementById('generatedDork');
+        const copyButton = document.getElementById('copyButton');
+        const copyButtonText = copyButton.querySelector('.button-text');
+        const searchButton = document.getElementById('searchButton');
+        const resetButton = document.getElementById('resetButton');
+
+        // Array of all input elements for easy iteration
+        const inputs = [
+            keywordInput, siteInput, filetypeInput, intitleInput, inurlInput,
+            intextInput, inanchorInput, excludeInput, numrangeInput, afterDateInput,
+            beforeDateInput, linkInput, relatedInput, cacheInput
+        ];
+
+        // --- Main Dork Generation Function ---
+        function generateDork() {
+            let dorkParts = [];
+
+            // Helper function to add operator with optional quoting
+            function addOperator(operator, value) {
+                value = value.trim();
+                if (value) {
+                    // Add quotes if value has spaces and isn't already quoted
+                    if (value.includes(' ') && !(value.startsWith('"') && value.endsWith('"'))) {
+                        dorkParts.push(`${operator}:"${value}"`);
+                    } else {
+                        dorkParts.push(`${operator}:${value}`);
+                    }
+                }
+            }
+
+             // Helper function to handle space-separated values with OR
+            function addMultiOperator(operator, value) {
+                value = value.trim();
+                if (value) {
+                    const terms = value.split(' ').filter(term => term); // Split by space and remove empty strings
+                    if (terms.length > 1) {
+                        const orClause = terms.map(term => `${operator}:${term}`).join(' OR ');
+                        dorkParts.push(`(${orClause})`);
+                    } else if (terms.length === 1) {
+                        dorkParts.push(`${operator}:${terms[0]}`);
+                    }
+                }
+            }
+
+            // 1. Keywords (handle directly)
+            const keywords = keywordInput.value.trim();
+            if (keywords) {
+                dorkParts.push(keywords);
+            }
+
+            // 2. Standard Filters
+            addMultiOperator('site', siteInput.value); // Handle OR for site
+            addMultiOperator('filetype', filetypeInput.value); // Handle OR for filetype
+            addOperator('intitle', intitleInput.value);
+            addOperator('inurl', inurlInput.value); // Usually no quotes needed, but addOperator handles it
+            addOperator('intext', intextInput.value);
+            addOperator('inanchor', inanchorInput.value);
+
+            // 3. Exclusion
+            const exclude = excludeInput.value.trim();
+            if (exclude) {
+                const excludeTerms = exclude.split(' ').filter(term => term);
+                excludeTerms.forEach(term => dorkParts.push(`-${term}`));
+            }
+
+            // 4. Numrange
+            const numrange = numrangeInput.value.trim();
+            if (numrange && numrange.includes('..')) { // Basic validation
+                 dorkParts.push(`numrange:${numrange}`);
+            }
+
+            // 5. Date Range
+            const afterDate = afterDateInput.value;
+            const beforeDate = beforeDateInput.value;
+            if (afterDate) dorkParts.push(`after:${afterDate}`);
+            if (beforeDate) dorkParts.push(`before:${beforeDate}`);
+
+            // 6. URL/Link Operators
+            addOperator('link', linkInput.value);
+            addOperator('related', relatedInput.value);
+            addOperator('cache', cacheInput.value); // Cache expects a full URL
+
+            // Join all parts and display
+            generatedDorkOutput.value = dorkParts.join(' ');
+        }
+
+        // --- Reset Function ---
+        function resetFields() {
+            inputs.forEach(input => {
+                input.value = ''; // Clear the value
+            });
+            generateDork(); // Regenerate the (now empty) dork string
+        }
+
+
+        // --- Event Listeners ---
+
+        // Update dork on any input change
+        inputs.forEach(input => {
+            input.addEventListener('input', generateDork);
+        });
+
+         // Reset button functionality
+        resetButton.addEventListener('click', resetFields);
+
+        // Copy button functionality
+        copyButton.addEventListener('click', () => {
+            const dorkToCopy = generatedDorkOutput.value;
+            if (!dorkToCopy) return;
+
+            navigator.clipboard.writeText(dorkToCopy).then(() => {
+                copyButton.classList.add('copied', 'btn-success');
+                copyButton.classList.remove('btn-secondary');
+                copyButtonText.textContent = 'Copied!';
+                copyButton.disabled = true;
+
+                setTimeout(() => {
+                    copyButton.classList.remove('copied', 'btn-success');
+                    copyButton.classList.add('btn-secondary');
+                    copyButtonText.textContent = 'Copy Dork';
+                    copyButton.disabled = false;
+                }, 1500);
+            }).catch(err => {
+                console.error('Failed to copy dork: ', err);
+                copyButtonText.textContent = 'Copy Failed';
+                 setTimeout(() => {
+                     copyButtonText.textContent = 'Copy Dork';
+                 }, 1500);
+            });
+        });
+
+        // Search button functionality
+        searchButton.addEventListener('click', () => {
+            const dorkQuery = generatedDorkOutput.value;
+            if (!dorkQuery) return;
+
+            const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(dorkQuery)}`;
+            window.open(searchUrl, '_blank');
+        });
+
+        // Initial generation on load
+        generateDork();
+
+    </script>
+</body>
+</html>

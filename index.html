@@ -1,139 +1,214 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced Google Dork Tool</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
         :root {
-            --hc-dark-bg: #212529;
-            --hc-card-bg: #2c3034;
-            --hc-input-bg: #3a3f44;
-            --hc-input-text: #e9ecef;
-            --hc-input-placeholder: #80868b;
-            --hc-input-border: #5a5f63;
-            --hc-label-text-color: #f8f9fa; /* Brighter text for labels */
-            --hc-dork-bg: #3a3f44;
-            --hc-dork-text: #fff;
-            --hc-muted-text: #adb5bd;
-            --hc-icon-color: #ced4da; /* Icon color */
-            --hc-icon-label-bg: #495057; /* Background for combined label */
+            /* Dev UI Theme Colors */
+            --bg-dark-navy: #0A192F;
+            --bg-medium-navy: #112240;
+            --text-light-gray: #CCD6F6;
+            --text-medium-gray: #8892B0;
+            --text-dark-gray: #4C566A; /* For subtle borders, less prominent elements */
+            --accent-cyan: #64FFDA;
+            --accent-cyan-rgb: 100, 255, 218;
+            --accent-warning-yellow: #EBCB8B; /* From previous theme's code strings */
+            --accent-warning-yellow-rgb: 235, 203, 139;
+
+            /* Bootstrap overrides for focus, etc. */
+            --bs-primary: var(--accent-cyan);
+            --bs-primary-rgb: var(--accent-cyan-rgb);
+            --bs-border-radius: 6px; /* Consistent rounded corners */
         }
 
         body {
             padding-top: 20px;
             padding-bottom: 40px;
-            background-color: var(--hc-dark-bg);
-            color: var(--bs-body-color);
+            background-color: var(--bg-dark-navy);
+            color: var(--text-light-gray); /* Default text color */
+            font-family: 'Inter', sans-serif;
         }
         .container {
             max-width: 900px;
         }
         .card {
-            background-color: var(--hc-card-bg);
-            border: 1px solid var(--hc-input-border);
+            background-color: var(--bg-medium-navy);
+            border: 1px solid var(--text-dark-gray);
+            border-radius: 8px; /* Slightly larger radius for cards */
+            box-shadow: 0 10px 30px -15px rgba(2,12,27,0.7);
         }
+
+        /* Headings and Standard Text */
+        h1, .h1, h5, .h5, .card-title {
+            color: var(--text-light-gray);
+            font-weight: 500;
+        }
+        p, .form-text, footer small, .text-muted { /* Ensure .text-muted also uses this */
+            color: var(--text-medium-gray) !important; /* Override Bootstrap if necessary */
+        }
+        .card-title {
+             margin-bottom: 1rem; /* Ensure consistent spacing */
+        }
+
 
         /* Input Fields & Select */
         .form-control, .form-select {
-            background-color: var(--hc-input-bg);
-            color: var(--hc-input-text);
-            border: 1px solid var(--hc-input-border);
-            border-left: none; /* Remove left border when preceded by input-group-text */
+            background-color: var(--bg-dark-navy); /* Darker than card for contrast */
+            color: var(--text-light-gray);
+            border: 1px solid var(--text-dark-gray); /* Subtle border */
+            border-radius: var(--bs-border-radius); /* Use our consistent radius */
+        }
+        /* Remove specific border adjustments if input-group handles it */
+        .input-group .form-control, .input-group .form-select {
+            border-left: none;
             border-top-left-radius: 0;
             border-bottom-left-radius: 0;
         }
         .form-control::placeholder {
-             color: var(--hc-input-placeholder);
-             opacity: 1;
+             color: var(--text-medium-gray);
+             opacity: 0.8;
         }
         .form-control[type="date"] {
-             color: var(--hc-input-text);
+             color: var(--text-light-gray);
         }
         .form-control[type="date"]:invalid {
-             color: var(--hc-input-placeholder);
+             color: var(--text-medium-gray);
+        }
+        /* Special styling for the standalone keywords input */
+        #keywords.form-control {
+            border-left: 1px solid var(--text-dark-gray);
+            border-top-left-radius: var(--bs-border-radius);
+            border-bottom-left-radius: var(--bs-border-radius);
         }
 
-        /* --- Input Group Text (Icon + Label) Styling --- */
+
+        /* Input Group Text (Icon + Label) Styling */
         .input-group-text {
-             min-width: 115px; /* Adjust width to fit icon and text comfortably */
-             display: inline-flex; /* Use flexbox */
-             align-items: center; /* Vertically align icon and text */
-             justify-content: flex-start; /* Align items to the start */
+             min-width: 115px;
+             display: inline-flex;
+             align-items: center;
+             justify-content: flex-start;
              font-weight: 500;
              font-size: 0.9em;
-             background-color: var(--hc-icon-label-bg);
-             color: var(--hc-label-text-color);
-             border: 1px solid var(--hc-input-border);
-             border-right: none; /* Remove right border */
+             background-color: var(--bg-medium-navy); /* Match card for seamless look */
+             color: var(--text-light-gray); /* For the label text */
+             border: 1px solid var(--text-dark-gray);
+             border-right: none;
+             border-top-left-radius: var(--bs-border-radius);
+             border-bottom-left-radius: var(--bs-border-radius);
              border-top-right-radius: 0;
              border-bottom-right-radius: 0;
         }
-
         .label-icon {
-            font-size: 1.1em; /* Icon size */
-            color: var(--hc-icon-color);
-            margin-right: 8px; /* Space between icon and text */
-            cursor: help; /* Indicate tooltip availability */
-            line-height: 1; /* Prevent extra spacing */
+            font-size: 1.1em;
+            color: var(--accent-cyan); /* Accent color for icons */
+            margin-right: 8px;
+            cursor: help;
+            line-height: 1;
         }
-
         .label-text {
-             /* Optional: Add specific styles for the text part if needed */
-             white-space: nowrap; /* Prevent label text wrapping */
+             white-space: nowrap;
         }
-
 
         /* Generated Dork Textarea */
         #generatedDork {
-            font-family: monospace;
-            background-color: var(--hc-dork-bg);
-            color: var(--hc-dork-text);
+            font-family: 'Roboto Mono', monospace;
+            background-color: var(--bg-dark-navy); /* Match inputs */
+            color: var(--text-light-gray);
             min-height: 80px;
             white-space: pre-wrap;
             word-break: break-all;
-            border: 1px solid var(--hc-input-border);
+            border: 1px solid var(--text-dark-gray);
+            border-radius: var(--bs-border-radius);
         }
 
         /* Labels (for standalone inputs like Keywords) */
-        label {
+        label.form-label { /* More specific to target form labels */
             font-weight: 500;
-            color: var(--hc-label-text-color);
+            color: var(--text-light-gray);
             margin-bottom: 0.5rem;
         }
         .date-range-label {
-             color: var(--hc-label-text-color);
+             color: var(--text-light-gray);
              text-align: center;
              margin-bottom: 0.5rem;
              display: block;
              font-weight: bold;
         }
-
-        /* Help Text */
-        .form-text {
-            font-size: 0.8em;
-            color: var(--hc-muted-text);
+        /* Dividers */
+        .border-top {
+            border-top-color: var(--text-dark-gray) !important;
         }
 
         /* Focus States */
         .form-control:focus, .form-select:focus {
-             border-color: var(--bs-primary);
-             box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
-             background-color: var(--hc-input-bg);
-             color: var(--hc-input-text);
-             position: relative;
-             z-index: 2;
-             border-left: 1px solid var(--bs-primary); /* Restore border color on focus */
+             border-color: var(--accent-cyan);
+             box-shadow: 0 0 0 0.2rem rgba(var(--accent-cyan-rgb), 0.35);
+             background-color: var(--bg-dark-navy);
+             color: var(--text-light-gray);
+             /* z-index: 2; /* Already has z-index from Bootstrap */
         }
-         /* Adjust input group focus */
-        .input-group:focus-within .input-group-text {
-            border-color: var(--bs-primary); /* Match input focus border */
-            border-right: none; /* Keep right border removed */
-            /* z-index: 3; */
+        .input-group:focus-within .input-group-text,
+        .input-group .form-control:focus + .input-group-text, /* For cases where input-group-text is after */
+        .input-group .input-group-text:has(+ .form-control:focus) { /* For cases where input-group-text is before */
+            border-color: var(--accent-cyan);
+            /* z-index: 3; /* Ensure it's above */
+        }
+        /* Restore border for focused input within group */
+        .input-group .form-control:focus {
+            border-left: 1px solid var(--accent-cyan);
+        }
+         .input-group .form-control:focus:first-child { /* if it's the first child, keep its left border rounded */
+            border-top-left-radius: var(--bs-border-radius);
+            border-bottom-left-radius: var(--bs-border-radius);
+        }
+
+
+        /* Buttons */
+        .btn {
+            font-family: 'Roboto Mono', monospace; /* Dev theme font for buttons */
+            font-weight: 500;
+            padding: 0.6rem 1.2rem;
+            border-radius: var(--bs-border-radius);
+            transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .btn-primary, .btn-success { /* Search and Copied state */
+            background-color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            color: var(--bg-dark-navy); /* Dark text on light accent */
+        }
+        .btn-primary:hover, .btn-success:hover {
+            background-color: #52d9c3; /* Slightly darker cyan */
+            border-color: #52d9c3;
+            color: var(--bg-dark-navy);
+        }
+        .btn-secondary { /* Copy button default state */
+            background-color: var(--bg-medium-navy);
+            border-color: var(--text-medium-gray);
+            color: var(--text-light-gray);
+        }
+        .btn-secondary:hover {
+            background-color: #223352; /* Slightly lighter medium navy */
+            border-color: var(--text-light-gray);
+            color: var(--text-light-gray);
+        }
+        .btn-warning { /* Reset button */
+            background-color: var(--accent-warning-yellow);
+            border-color: var(--accent-warning-yellow);
+            color: var(--bg-dark-navy); /* Dark text on light accent */
+        }
+        .btn-warning:hover {
+            background-color: #d4b979; /* Slightly darker yellow */
+            border-color: #d4b979;
+            color: var(--bg-dark-navy);
         }
 
         /* Button Copy Feedback */
@@ -141,56 +216,56 @@
         .btn-copy.copied .bi-clipboard { display: none; }
         .btn-copy.copied .bi-clipboard-check-fill { display: inline-block; }
 
-        /* Footer */
-        footer small {
-            color: var(--hc-muted-text);
-        }
 
         /* Bootstrap Tooltip Customization */
         .tooltip-inner {
-            background-color: var(--hc-input-bg);
-            color: var(--hc-input-text);
-            border: 1px solid var(--hc-input-border);
+            background-color: var(--bg-medium-navy);
+            color: var(--text-light-gray);
+            border: 1px solid var(--text-dark-gray);
             max-width: 250px;
             text-align: left;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--bs-border-radius);
+            font-family: 'Inter', sans-serif; /* Match body font */
+            font-size: 0.85em;
         }
         .tooltip.bs-tooltip-top .tooltip-arrow::before,
         .tooltip.bs-tooltip-auto[data-popper-placement^=top] .tooltip-arrow::before {
-             border-top-color: var(--hc-input-border);
+             border-top-color: var(--text-dark-gray);
         }
          .tooltip.bs-tooltip-bottom .tooltip-arrow::before,
         .tooltip.bs-tooltip-auto[data-popper-placement^=bottom] .tooltip-arrow::before {
-             border-bottom-color: var(--hc-input-border);
+             border-bottom-color: var(--text-dark-gray);
         }
          .tooltip.bs-tooltip-start .tooltip-arrow::before,
         .tooltip.bs-tooltip-auto[data-popper-placement^=left] .tooltip-arrow::before {
-             border-left-color: var(--hc-input-border);
+             border-left-color: var(--text-dark-gray);
         }
          .tooltip.bs-tooltip-end .tooltip-arrow::before,
         .tooltip.bs-tooltip-auto[data-popper-placement^=right] .tooltip-arrow::before {
-             border-right-color: var(--hc-input-border);
+             border-right-color: var(--text-dark-gray);
         }
 
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="mb-4 text-center" style="color: var(--hc-label-text-color);">Advanced Google Dork</h1>
-        <p class="text-center mb-4" style="color: var(--hc-muted-text);">Build complex Google search queries easily. Hover over icons for operator explanations.</p>
-        <p class="text-center small mb-4" style="color: var(--hc-muted-text);">
+        <h1 class="mb-4 text-center">Advanced Google Dork</h1>
+        <p class="text-center mb-4 text-muted">Build complex Google search queries easily. Hover over icons for operator explanations.</p>
+        <p class="text-center small mb-4 text-muted">
             Tip: For `allin*` operators, type them directly into the Keywords field. Use `~` for synonyms and `*` for wildcards.
         </p>
 
         <div class="card mb-4 shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title mb-3" style="color: var(--hc-label-text-color);">Core Search Terms</h5>
+            <div class="card-body p-4"> <!-- Added more padding to card body -->
+                <h5 class="card-title mb-3">Core Search Terms</h5>
                 <!-- Keywords -->
                 <div class="mb-3">
                     <label for="keywords" class="form-label">Keywords / "Exact Phrase" / allin*:</label>
-                    <input type="text" class="form-control" id="keywords" placeholder="e.g., admin login, "confidential report", allintitle:index of" style="border-radius: var(--bs-border-radius); border-left: 1px solid var(--hc-input-border);">
+                    <input type="text" class="form-control" id="keywords" placeholder="e.g., admin login, "confidential report", allintitle:index of">
                 </div>
 
-                <h5 class="card-title mb-3 mt-4" style="color: var(--hc-label-text-color);">Filtering Operators</h5>
+                <h5 class="card-title mb-3 mt-4">Filtering Operators</h5>
                  <!-- Basic Filters -->
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
@@ -217,7 +292,7 @@
                                 <i class="bi bi-card-heading label-icon" data-bs-toggle="tooltip" data-bs-placement="left" title="intitle: Find pages where the term(s) appear in the HTML title tag (<title>). Use quotes for phrases."></i>
                                 <span class="label-text">intitle:</span>
                             </span>
-                            <input type="text" class="form-control" id="intitle" placeholder=""index of /" OR login">
+                            <input type="text" class="form-control" id="intitle" placeholder='"index of /" OR login'>
                         </div>
                     </div>
                      <div class="col-md-6">
@@ -235,7 +310,7 @@
                                 <i class="bi bi-textarea-t label-icon" data-bs-toggle="tooltip" data-bs-placement="left" title="intext: Find pages where the term(s) appear within the main body content. Use quotes for phrases."></i>
                                 <span class="label-text">intext:</span>
                             </span>
-                            <input type="text" class="form-control" id="intext" placeholder=""password" OR "internal use"">
+                            <input type="text" class="form-control" id="intext" placeholder='"password" OR "internal use"'>
                         </div>
                     </div>
                      <div class="col-md-6">
@@ -268,7 +343,7 @@
                 </div>
 
                 <!-- Date Range -->
-                 <div class="row g-3 mb-3 border-top pt-3 mt-3" style="border-color: var(--hc-input-border) !important;">
+                 <div class="row g-3 mb-3 border-top pt-3 mt-3">
                      <span class="date-range-label">Date Range (Optional)</span>
                      <div class="col-md-6">
                         <div class="input-group">
@@ -291,8 +366,8 @@
                  </div>
 
                  <!-- URL/Link Based Operators -->
-                <div class="row g-3 border-top pt-3 mt-3" style="border-color: var(--hc-input-border) !important;">
-                     <h5 class="card-title mb-1" style="color: var(--hc-label-text-color);">URL/Link Operators</h5>
+                <div class="row g-3 border-top pt-3 mt-3">
+                     <h5 class="card-title mb-1">URL/Link Operators</h5>
                      <div class="col-md-6">
                         <div class="input-group">
                              <span class="input-group-text">
@@ -447,7 +522,7 @@
             const dorkToCopy = generatedDorkOutput.value;
             if (!dorkToCopy) return;
             navigator.clipboard.writeText(dorkToCopy).then(() => {
-                copyButton.classList.add('copied', 'btn-success');
+                copyButton.classList.add('copied', 'btn-success'); // btn-success will now use our accent-cyan
                 copyButton.classList.remove('btn-secondary');
                 copyButtonText.textContent = 'Copied!';
                 copyButton.disabled = true;
@@ -469,7 +544,7 @@
             const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(dorkQuery)}`;
             window.open(searchUrl, '_blank');
         });
-        generateDork();
+        generateDork(); // Initial generation
     </script>
 </body>
 </html>
